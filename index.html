@@ -81,4 +81,195 @@
   input[type="text"], input[type="password"] {
     width: 100%; padding: 15px; margin: 15px 0;
     background: rgba(0,0,0,0.3); border: 1px solid var(--brand-color);
-    color: white
+    color: white; border-radius: 8px; box-sizing: border-box;
+    font-size: 16px; text-transform: uppercase;
+  }
+  
+  button {
+    width: 100%; padding: 16px; margin-bottom: 10px;
+    background: var(--brand-color); color: white;
+    border: none; border-radius: 8px; font-weight: bold; font-size: 16px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  button:hover { background: var(--brand-hover); }
+  button.secondary { background: transparent; border: 1px solid var(--glass-border); }
+  
+  .bg-blur { filter: blur(8px) brightness(0.5); transition: all 0.3s ease; }
+
+  /* Backgrounds */
+  .map-bg {
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  .shake { animation: shake 0.4s ease-in-out; }
+</style>
+</head>
+<body>
+
+<div class="device-frame">
+  <!-- 인트로 화면 -->
+  <div id="intro-screen" class="screen active">
+    <div id="ai-normal">
+      <div class="loader"></div>
+      <h2>여행 망함 방지 AI</h2>
+      <p style="color: var(--text-dim)">일정을 검증하고 있습니다...</p>
+    </div>
+    <div id="ai-error" class="glitch-text" style="margin-top: 20px;">
+      <h2>CRITICAL ERROR</h2>
+      <p>SYSTEM CORRUPTED. 일정 복구를 수동으로 전환합니다.</p>
+    </div>
+  </div>
+
+  <!-- Stage 1: 항공권 -->
+  <div id="stage1-screen" class="screen">
+    <div id="ticket-bg" style="transition: all 0.3s;">
+      <h3 style="color: var(--brand-color)">E-TICKET</h3>
+      <div class="glass-panel">
+        <p><strong>NAME:</strong> LEE / SEUNGHYUN</p>
+        <p><strong>ROUTE:</strong> ICN -> FUK (Fukuoka)</p>
+        <p><strong>DEPARTURE:</strong> 02:30 PM</p>
+        <p><strong>SEAT:</strong> 28F</p>
+      </div>
+    </div>
+    
+    <div id="stage1-modal" class="modal">
+      <h3 style="color: var(--error-red)">⚠️ PNR VERIFICATION FAILED</h3>
+      <p style="font-size: 14px; color: var(--text-dim);">복구 코드 규칙: [도착지 공항코드 3자리] + [출발시간(24시간제)] + [좌석번호]</p>
+      <input type="text" id="stage1-input" placeholder="코드를 입력하세요">
+      <button onclick="checkStage1()">시스템 복구</button>
+      <button class="secondary" onclick="toggleModal('stage1')">티켓 다시보기</button>
+    </div>
+    <button id="stage1-reopen" class="secondary" style="position:absolute; bottom:20px; width:calc(100% - 40px); display:none;" onclick="toggleModal('stage1')">정답 입력하기</button>
+  </div>
+
+  <!-- Stage 2: 환승 노선도 -->
+  <div id="stage2-screen" class="screen map-bg">
+    <h3 style="color: var(--brand-color)">GPS 경로 이탈</h3>
+    <div class="glass-panel" id="map-bg-blur">
+      <p style="font-size: 14px;"><strong>목적지 1:</strong> 더 낫 후쿠오카 텐진 (지점코드 19)</p>
+      <p style="font-size: 14px;"><strong>목적지 2:</strong> 모츠나베 라쿠텐치 본점 (메뉴코드 79)</p>
+      <p style="font-size: 14px; color: var(--text-dim); margin-top: 10px;">* 수동 라우팅을 위해 두 코드를 결합하여 경로 코드를 입력하십시오.</p>
+    </div>
+    
+    <div id="stage2-modal" class="modal">
+      <h3 style="color: var(--error-red)">⚠️ ROUTE NOT FOUND</h3>
+      <input type="text" id="stage2-input" placeholder="4자리 경로 코드">
+      <button onclick="checkStage2()">경로 재탐색</button>
+      <button class="secondary" onclick="toggleModal('stage2')">지도 확인하기</button>
+    </div>
+    <button id="stage2-reopen" class="secondary" style="position:absolute; bottom:20px; width:calc(100% - 40px); display:none;" onclick="toggleModal('stage2')">정답 입력하기</button>
+  </div>
+
+  <!-- Stage 3: 비상 연락망 -->
+  <div id="stage3-screen" class="screen">
+    <div style="display: flex; justify-content: space-between; align-items: center; color: var(--error-red); border-bottom: 1px solid var(--error-red); padding-bottom: 10px;">
+      <strong>OFFLINE MAP LOCKED</strong>
+      <span>BATTERY 5%</span>
+    </div>
+    <div class="glass-panel" style="margin-top: 20px;" id="memo-bg-blur">
+      <p><strong>[메모장 단서]</strong></p>
+      <p style="font-size:14px;">- 오늘 저녁 광화문 7979 서울 러닝크루 참석!</p>
+      <p style="font-size:14px;">- 양꼬치 결제 금액: 15,000원</p>
+      <hr style="border-color: var(--glass-border);">
+      <p style="font-size:14px; color: var(--text-dim);">* PIN 규칙: [크루 이름 숫자의 각 자리 합] + [양꼬치 가격의 앞 2자리 숫자]</p>
+    </div>
+
+    <div id="stage3-modal" class="modal">
+      <h3>EMERGENCY PIN</h3>
+      <input type="password" id="stage3-input" placeholder="4자리 PIN 입력" maxlength="4">
+      <button onclick="checkStage3()">잠금 해제</button>
+      <button class="secondary" onclick="toggleModal('stage3')">단서 확인하기</button>
+    </div>
+    <button id="stage3-reopen" class="secondary" style="position:absolute; bottom:20px; width:calc(100% - 40px); display:none;" onclick="toggleModal('stage3')">정답 입력하기</button>
+  </div>
+
+  <!-- 엔딩 화면 -->
+  <div id="ending-screen" class="screen" style="align-items: center; justify-content: center; text-align: center;">
+    <h1 style="color: var(--brand-color)">SYSTEM RESTORED</h1>
+    <p>모든 에러가 수정되었습니다.<br>안전한 여행 되세요!</p>
+  </div>
+</div>
+
+<script>
+  function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+  }
+
+  function toggleModal(stage) {
+    const modal = document.getElementById(stage + '-modal');
+    const inputBtn = document.getElementById(stage + '-reopen');
+    let bg;
+    if(stage === 'stage1') bg = document.getElementById('ticket-bg');
+    if(stage === 'stage2') bg = document.getElementById('map-bg-blur');
+    if(stage === 'stage3') bg = document.getElementById('memo-bg-blur');
+
+    if (modal.classList.contains('show')) {
+      modal.classList.remove('show');
+      bg.classList.remove('bg-blur');
+      inputBtn.style.display = 'block';
+    } else {
+      modal.classList.add('show');
+      bg.classList.add('bg-blur');
+      inputBtn.style.display = 'none';
+    }
+  }
+
+  function showError(inputId) {
+    const input = document.getElementById(inputId);
+    input.classList.add('shake');
+    input.value = '';
+    setTimeout(() => input.classList.remove('shake'), 400);
+  }
+
+  // Stage 1 정답: FUK143028F (Fukuoka / 14:30 / 28F)
+  function checkStage1() {
+    const val = document.getElementById('stage1-input').value.toUpperCase().replace(/\s/g, '');
+    if (val === 'FUK143028F') {
+      switchScreen('stage2-screen');
+      setTimeout(() => toggleModal('stage2'), 500);
+    } else {
+      showError('stage1-input');
+    }
+  }
+
+  // Stage 2 정답: 1979 (19 + 79)
+  function checkStage2() {
+    const val = document.getElementById('stage2-input').value.trim();
+    if (val === '1979') {
+      switchScreen('stage3-screen');
+      setTimeout(() => toggleModal('stage3'), 500);
+    } else {
+      showError('stage2-input');
+    }
+  }
+
+  // Stage 3 정답: 3215 (7+9+7+9=32, 15)
+  function checkStage3() {
+    const val = document.getElementById('stage3-input').value.trim();
+    if (val === '3215') {
+      switchScreen('ending-screen');
+    } else {
+      showError('stage3-input');
+    }
+  }
+
+  // 인트로 시퀀스
+  setTimeout(() => {
+    document.getElementById('ai-normal').style.display = 'none';
+    document.getElementById('ai-error').style.display = 'block';
+    
+    setTimeout(() => {
+      switchScreen('stage1-screen');
+      // 처음에 티켓을 4초간 보여준 뒤 에러 모달 등장
+      setTimeout(() => toggleModal('stage1'), 4000);
+    }, 2000);
+  }, 3000);
+</script>
+</body>
+</html>
