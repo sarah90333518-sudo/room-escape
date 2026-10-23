@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여행 망함 방지 AI - 긴급 수동 복구</title>
+<style>
+  :root {
+    --brand-color: #5e2bb8;
+    --brand-hover: #7a41db;
+    --bg-dark: #0f0a1a;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #ffffff;
+    --text-dim: #a09ab0;
+    --error-red: #ff4d4f;
+  }
+  
+  body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .device-frame {
+    width: 100%; max-width: 400px; height: 100%; max-height: 800px;
+    background: #141021;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(94, 43, 184, 0.2);
+  }
+
+  .screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: none; flex-direction: column;
+    padding: 20px; box-sizing: border-box;
+  }
+  .screen.active { display: flex; }
+
+  /* Glassmorphism Panel */
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  /* Intro Screen */
+  #intro-screen { align-items: center; justify-content: center; text-align: center; }
+  .loader {
+    width: 50px; height: 50px;
+    border: 3px solid var(--glass-border);
+    border-top-color: var(--brand-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+  .glitch-text { color: var(--error-red); font-weight: bold; display: none; }
+
+  /* Modals & Inputs */
+  .modal {
+    position: absolute; bottom: 0; left: 0; width: 100%;
+    background: rgba(20, 16, 33, 0.95);
+    border-top: 1px solid var(--brand-color);
+    border-radius: 24px 24px 0 0;
+    padding: 30px 20px;
+    box-sizing: border-box;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10;
+  }
+  .modal.show { transform: translateY(0); }
+  
+  input[type="text"], input[type="password"] {
+    width: 100%; padding: 15px; margin: 15px 0;
+    background: rgba(0,0,0,0.3); border: 1px solid var(--brand-color);
+    color: white
